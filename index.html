@@ -5,65 +5,104 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FinPilot</title>
   <meta name="theme-color" content="#4f46e5" />
-  <link rel="stylesheet" href="styles.css?v=20" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-  <div id="app">
-    <header class="top">
-      <div class="brand">
-        <div class="logo">FP</div>
-        <div>
-          <div class="title">FinPilot</div>
-          <div class="subtitle">AI CFO dla freelancerów</div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">FP</div>
+      <div class="brand-text">
+        <div class="brand-title">FinPilot</div>
+        <div class="brand-sub">AI CFO dla freelancerów</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div class="pill">✅ Backend AI działa</div>
+      <a class="ghost" href="https://finpilot-puce.vercel.app" target="_blank" rel="noreferrer">Vercel</a>
+      <a class="ghost" href="https://zaweleon6-dotcom.github.io/Finplot/" target="_blank" rel="noreferrer">GitHub Pages</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="grid">
+      <!-- Left: Import + Summary -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>1. Import finansów</h2>
+          <div class="hint">Wklej CSV: <code>date,description,amount</code></div>
+        </div>
+
+        <textarea id="csv" rows="6" placeholder="2026-01-21,Faktura #12,4500
+2026-01-22,Czynsz,-1700
+2026-01-23,Software,-120"></textarea>
+
+        <div class="row">
+          <button id="btnImport" class="btn">Importuj CSV</button>
+          <button id="btnDemo" class="btn btn2">Wczytaj demo</button>
+          <div id="status" class="status"></div>
         </div>
       </div>
-    </header>
 
-    <main class="container">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>2. Podsumowanie</h2>
+          <div class="hint">Szybki obraz Twoich przepływów</div>
+        </div>
 
-      <section class="card">
-        <h2>1. Import finansów</h2>
-        <textarea id="csv" rows="6" placeholder="date,description,amount"></textarea>
-        <button id="btnImport">Importuj CSV</button>
-        <div id="status"></div>
-      </section>
-
-      <section class="card">
-        <h2>2. Podsumowanie</h2>
         <div class="kpis">
-          <div><span>Przychody</span><b id="income">0</b></div>
-          <div><span>Koszty</span><b id="expense">0</b></div>
-          <div><span>Netto</span><b id="net">0</b></div>
+          <div class="kpi">
+            <div class="kpi-label">Przychody</div>
+            <div class="kpi-value" id="income">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Koszty</div>
+            <div class="kpi-value" id="expense">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Netto</div>
+            <div class="kpi-value" id="net">0</div>
+          </div>
         </div>
-      </section>
 
-      <section class="card full">
-        <h2>3. AI CFO – decyzja</h2>
+        <div class="mini">
+          <div class="mini-title">Wskazówka</div>
+          <div class="mini-text" id="tip">Zaimportuj dane, a AI podpowie decyzje.</div>
+        </div>
+      </div>
 
-        <div class="mode-switch">
-          <label>Tryb:</label>
-          <select id="mode">
-            <option value="cfo">💼 CFO</option>
-            <option value="vacation">✈️ Wakacje</option>
+      <!-- Full width: AI -->
+      <div class="panel panel-wide">
+        <div class="panel-head">
+          <h2>3. AI CFO — decyzja</h2>
+          <div class="hint">Gadasz jak z kolegą, ale tylko o finansach (i wakacjach pod budżet)</div>
+        </div>
+
+        <div class="chat-toolbar">
+          <label class="label">Tryb</label>
+          <select id="mode" class="select">
+            <option value="cfo">💼 CFO (rachunki / budżet / decyzje)</option>
+            <option value="vacation">✈️ Wakacje (najlepiej za budżet)</option>
           </select>
+
+          <div class="spacer"></div>
+          <button id="btnClear" class="ghost2">Wyczyść chat</button>
         </div>
 
-        <div id="decision" class="decision hidden">
-          <div class="decision-status">—</div>
-          <div class="decision-text"></div>
+        <div id="chat" class="chat"></div>
+
+        <div class="composer">
+          <input id="question" class="input" placeholder="Np. Czy stać mnie na wakacje za 6000 zł? / Jak obciąć koszty o 20%?" />
+          <button id="btnAsk" class="btn">Zapytaj AI</button>
         </div>
 
-        <input
-          id="question"
-          placeholder="Np. Czy stać mnie na wakacje za 6000 zł?"
-        />
-
-        <button id="btnAsk">Zapytaj AI</button>
-      </section>
-
-    </main>
-  </div>
+        <div class="footnote">
+          FinPilot nie jest doradcą podatkowym/finansowym. Traktuj odpowiedzi jako pomoc w analizie i decyzjach.
+        </div>
+      </div>
+    </section>
+  </main>
 
   <script src="app.js"></script>
 </body>
