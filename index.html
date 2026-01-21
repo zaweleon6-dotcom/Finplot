@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FinPilot</title>
   <meta name="theme-color" content="#4f46e5" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -14,93 +18,167 @@
       <div class="logo">FP</div>
       <div class="brand-text">
         <div class="brand-title">FinPilot</div>
-        <div class="brand-sub">AI CFO dla freelancerów</div>
+        <div class="brand-sub">AI CFO + budżet + wakacje w budżecie</div>
       </div>
     </div>
 
     <div class="top-actions">
-      <div class="pill">✅ Backend AI działa</div>
-      <a class="ghost" href="https://finpilot-puce.vercel.app" target="_blank" rel="noreferrer">Vercel</a>
-      <a class="ghost" href="https://zaweleon6-dotcom.github.io/Finplot/" target="_blank" rel="noreferrer">GitHub Pages</a>
+      <div class="pill" id="pillStatus">● Online</div>
+      <button class="ghost2" id="btnExport">Eksport CSV</button>
+      <button class="ghost2" id="btnReset">Reset</button>
     </div>
   </header>
 
   <main class="wrap">
     <section class="grid">
-      <!-- Left: Import + Summary -->
+
+      <!-- BALANCE + QUICK ADD -->
       <div class="panel">
         <div class="panel-head">
-          <h2>1. Import finansów</h2>
-          <div class="hint">Wklej CSV: <code>date,description,amount</code></div>
+          <h2>1) Stan konta + szybki wpis</h2>
+          <div class="hint">Najprostszy flow: ustaw stan → dodawaj wydatki/przychody</div>
         </div>
 
-        <textarea id="csv" rows="6" placeholder="2026-01-21,Faktura #12,4500
-2026-01-22,Czynsz,-1700
-2026-01-23,Software,-120"></textarea>
+        <div class="two">
+          <div class="field">
+            <label>Stan konta (PLN)</label>
+            <input id="balance" class="input" type="number" step="0.01" placeholder="np. 12500" />
+            <button id="btnSetBalance" class="btn">Ustaw stan</button>
+            <div class="micro" id="balanceHint"></div>
+          </div>
 
-        <div class="row">
-          <button id="btnImport" class="btn">Importuj CSV</button>
-          <button id="btnDemo" class="btn btn2">Wczytaj demo</button>
-          <div id="status" class="status"></div>
+          <div class="field">
+            <label>Dodaj transakcję</label>
+            <div class="row">
+              <input id="tAmount" class="input" type="number" step="0.01" placeholder="np. -600 (zakupy) / 4500 (faktura)" />
+              <select id="tCategory" class="select">
+                <option>Zakupy</option>
+                <option>Jedzenie</option>
+                <option>Transport</option>
+                <option>Abonamenty</option>
+                <option>Czynsz</option>
+                <option>Rozrywka</option>
+                <option>Zdrowie</option>
+                <option>Podatki</option>
+                <option>Przychód</option>
+                <option>Inne</option>
+              </select>
+            </div>
+            <input id="tDesc" class="input" placeholder="opis np. Lidl / Netflix / Faktura #12" />
+            <div class="row">
+              <input id="tDate" class="input" type="date" />
+              <button id="btnAddTx" class="btn">Dodaj</button>
+            </div>
+            <div class="status" id="status"></div>
+          </div>
         </div>
       </div>
 
+      <!-- MONTH SUMMARY -->
       <div class="panel">
         <div class="panel-head">
-          <h2>2. Podsumowanie</h2>
-          <div class="hint">Szybki obraz Twoich przepływów</div>
+          <h2>2) Podsumowanie miesiąca</h2>
+          <div class="hint">Wybierz miesiąc i zobacz wynik + rekomendacje</div>
+        </div>
+
+        <div class="row">
+          <select id="monthPick" class="select"></select>
+          <button id="btnThisMonth" class="btn btn2">Bieżący</button>
         </div>
 
         <div class="kpis">
           <div class="kpi">
             <div class="kpi-label">Przychody</div>
-            <div class="kpi-value" id="income">0</div>
+            <div class="kpi-value" id="kIncome">0</div>
           </div>
           <div class="kpi">
             <div class="kpi-label">Koszty</div>
-            <div class="kpi-value" id="expense">0</div>
+            <div class="kpi-value" id="kExpense">0</div>
           </div>
           <div class="kpi">
             <div class="kpi-label">Netto</div>
-            <div class="kpi-value" id="net">0</div>
+            <div class="kpi-value" id="kNet">0</div>
           </div>
         </div>
 
         <div class="mini">
-          <div class="mini-title">Wskazówka</div>
-          <div class="mini-text" id="tip">Zaimportuj dane, a AI podpowie decyzje.</div>
+          <div class="mini-title">Szybka wskazówka</div>
+          <div class="mini-text" id="tip">Dodaj transakcje — a dostaniesz konkretne wnioski.</div>
         </div>
       </div>
 
-      <!-- Full width: AI -->
+      <!-- CHARTS -->
       <div class="panel panel-wide">
         <div class="panel-head">
-          <h2>3. AI CFO — decyzja</h2>
-          <div class="hint">Gadasz jak z kolegą, ale tylko o finansach (i wakacjach pod budżet)</div>
+          <h2>3) Wykresy</h2>
+          <div class="hint">Cashflow po dniach + wydatki wg kategorii</div>
+        </div>
+
+        <div class="charts">
+          <div class="chartCard">
+            <div class="chartTitle">Saldo / cashflow (wybrany miesiąc)</div>
+            <canvas id="chartLine"></canvas>
+          </div>
+          <div class="chartCard">
+            <div class="chartTitle">Wydatki wg kategorii (wybrany miesiąc)</div>
+            <canvas id="chartPie"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <div class="panel panel-wide">
+        <div class="panel-head">
+          <h2>4) Transakcje</h2>
+          <div class="hint">Kliknij kosz, żeby usunąć</div>
+        </div>
+
+        <div class="tableWrap">
+          <table class="table" id="txTable">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Opis</th>
+                <th>Kategoria</th>
+                <th class="right">Kwota</th>
+                <th class="right">Akcja</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AI CHAT -->
+      <div class="panel panel-wide">
+        <div class="panel-head">
+          <h2>5) AI CFO (normalnie jak z kolegą)</h2>
+          <div class="hint">Może też doradzić wakacje w budżecie (kraj/miasto), bez wulgaryzmów</div>
         </div>
 
         <div class="chat-toolbar">
           <label class="label">Tryb</label>
           <select id="mode" class="select">
-            <option value="cfo">💼 CFO (rachunki / budżet / decyzje)</option>
-            <option value="vacation">✈️ Wakacje (najlepiej za budżet)</option>
+            <option value="cfo">💼 Finanse / rachunki / budżet</option>
+            <option value="vacation">✈️ Wakacje w budżecie (kraj/miasto + koszty)</option>
           </select>
 
           <div class="spacer"></div>
-          <button id="btnClear" class="ghost2">Wyczyść chat</button>
+          <button id="btnClearChat" class="ghost2">Wyczyść chat</button>
         </div>
 
         <div id="chat" class="chat"></div>
 
         <div class="composer">
-          <input id="question" class="input" placeholder="Np. Czy stać mnie na wakacje za 6000 zł? / Jak obciąć koszty o 20%?" />
-          <button id="btnAsk" class="btn">Zapytaj AI</button>
+          <input id="question" class="input" placeholder="Np. Jak obciąć koszty? / Gdzie polecisz za 2500 zł na 7 dni dla 2 osób?" />
+          <button id="btnAsk" class="btn">Wyślij</button>
         </div>
 
         <div class="footnote">
-          FinPilot nie jest doradcą podatkowym/finansowym. Traktuj odpowiedzi jako pomoc w analizie i decyzjach.
+          FinPilot to narzędzie pomocnicze — decyzje podejmuj świadomie. Dane są zapisywane lokalnie w przeglądarce.
         </div>
       </div>
+
     </section>
   </main>
 
