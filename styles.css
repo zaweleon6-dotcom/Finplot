@@ -114,3 +114,32 @@ button:hover{filter:brightness(1.05)}
 }
 .msg{margin:8px 0}
 .msg b{color: rgba(255,255,255,.75)}
+/* ===== MODE SWITCH (AI CFO) ===== */
+.mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mode-switch label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mode-switch select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mode-switch select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
