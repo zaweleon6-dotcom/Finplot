@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FinPilot</title>
+
+  <!-- Theme -->
+  <meta name="theme-color" content="#4f46e5" />
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div id="app">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">FP</div>
+        <div>
+          <div class="title">FinPilot</div>
+          <div class="subtitle">AI CFO dla freelancerów</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <h2>Import CSV</h2>
+        <textarea id="csv" rows="6" placeholder="date,description,amount"></textarea>
+        <button id="btnImport">Importuj</button>
+        <div id="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>Dashboard</h2>
+        <div class="kpis">
+          <div><span>Przychody</span><b id="income">0</b></div>
+          <div><span>Koszty</span><b id="expense">0</b></div>
+          <div><span>Netto</span><b id="net">0</b></div>
+        </div>
+        <canvas id="chart"></canvas>
+      </section>
+
+      <section class="card">
+        <h2>AI CFO</h2>
+        <div id="chat"></div>
+        <input id="question" placeholder="Czy stać mnie na urlop za 2000?" />
+        <button id="btnAsk">Zapytaj</button>
+      </section>
+    </main>
+  </div>
+
+  <!-- App logic -->
+  <script src="app.js"></script>
+</body>
+</html>
