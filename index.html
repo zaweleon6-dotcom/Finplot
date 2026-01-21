@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FinPilot</title>
   <meta name="theme-color" content="#4f46e5" />
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -18,168 +15,246 @@
       <div class="logo">FP</div>
       <div class="brand-text">
         <div class="brand-title">FinPilot</div>
-        <div class="brand-sub">AI CFO + budżet + wakacje w budżecie</div>
+        <div class="brand-sub">Budżet + cele + AI + wakacje w budżecie</div>
       </div>
     </div>
 
     <div class="top-actions">
-      <div class="pill" id="pillStatus">● Online</div>
+      <div class="pill" id="pillStatus">● Ready</div>
       <button class="ghost2" id="btnExport">Eksport CSV</button>
       <button class="ghost2" id="btnReset">Reset</button>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="grid">
 
-      <!-- BALANCE + QUICK ADD -->
-      <div class="panel">
-        <div class="panel-head">
-          <h2>1) Stan konta + szybki wpis</h2>
-          <div class="hint">Najprostszy flow: ustaw stan → dodawaj wydatki/przychody</div>
-        </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="budget">Budżet</button>
+      <button class="tab" data-tab="plans">Plan wydatków</button>
+      <button class="tab" data-tab="ai">AI</button>
+    </div>
 
-        <div class="two">
-          <div class="field">
-            <label>Stan konta (PLN)</label>
-            <input id="balance" class="input" type="number" step="0.01" placeholder="np. 12500" />
-            <button id="btnSetBalance" class="btn">Ustaw stan</button>
-            <div class="micro" id="balanceHint"></div>
+    <!-- =============== TAB: BUDGET =============== -->
+    <section class="tabPage show" id="tab-budget">
+      <section class="grid">
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>1) Stan konta + szybki wpis</h2>
+            <div class="hint">Ustaw stan → dodawaj wydatki/przychody</div>
           </div>
 
-          <div class="field">
-            <label>Dodaj transakcję</label>
-            <div class="row">
-              <input id="tAmount" class="input" type="number" step="0.01" placeholder="np. -600 (zakupy) / 4500 (faktura)" />
-              <select id="tCategory" class="select">
-                <option>Zakupy</option>
-                <option>Jedzenie</option>
-                <option>Transport</option>
-                <option>Abonamenty</option>
-                <option>Czynsz</option>
-                <option>Rozrywka</option>
-                <option>Zdrowie</option>
-                <option>Podatki</option>
-                <option>Przychód</option>
-                <option>Inne</option>
-              </select>
+          <div class="two">
+            <div class="field">
+              <label>Stan konta (PLN)</label>
+              <input id="balance" class="input" type="number" step="0.01" placeholder="np. 12500" />
+              <button id="btnSetBalance" class="btn">Ustaw stan</button>
+              <div class="micro" id="balanceHint"></div>
             </div>
-            <input id="tDesc" class="input" placeholder="opis np. Lidl / Netflix / Faktura #12" />
-            <div class="row">
-              <input id="tDate" class="input" type="date" />
-              <button id="btnAddTx" class="btn">Dodaj</button>
+
+            <div class="field">
+              <label>Dodaj transakcję</label>
+              <div class="row">
+                <input id="tAmount" class="input" type="number" step="0.01" placeholder="np. -600 / 4500" />
+                <select id="tCategory" class="select">
+                  <option>Zakupy</option>
+                  <option>Jedzenie</option>
+                  <option>Transport</option>
+                  <option>Abonamenty</option>
+                  <option>Czynsz</option>
+                  <option>Rozrywka</option>
+                  <option>Zdrowie</option>
+                  <option>Podatki</option>
+                  <option>Przychód</option>
+                  <option>Inne</option>
+                </select>
+              </div>
+              <input id="tDesc" class="input" placeholder="opis np. Lidl / Netflix / Faktura #12" />
+              <div class="row">
+                <input id="tDate" class="input" type="date" />
+                <button id="btnAddTx" class="btn">Dodaj</button>
+              </div>
+              <div class="status" id="status"></div>
             </div>
-            <div class="status" id="status"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MONTH SUMMARY -->
-      <div class="panel">
-        <div class="panel-head">
-          <h2>2) Podsumowanie miesiąca</h2>
-          <div class="hint">Wybierz miesiąc i zobacz wynik + rekomendacje</div>
-        </div>
-
-        <div class="row">
-          <select id="monthPick" class="select"></select>
-          <button id="btnThisMonth" class="btn btn2">Bieżący</button>
-        </div>
-
-        <div class="kpis">
-          <div class="kpi">
-            <div class="kpi-label">Przychody</div>
-            <div class="kpi-value" id="kIncome">0</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Koszty</div>
-            <div class="kpi-value" id="kExpense">0</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Netto</div>
-            <div class="kpi-value" id="kNet">0</div>
           </div>
         </div>
 
-        <div class="mini">
-          <div class="mini-title">Szybka wskazówka</div>
-          <div class="mini-text" id="tip">Dodaj transakcje — a dostaniesz konkretne wnioski.</div>
-        </div>
-      </div>
-
-      <!-- CHARTS -->
-      <div class="panel panel-wide">
-        <div class="panel-head">
-          <h2>3) Wykresy</h2>
-          <div class="hint">Cashflow po dniach + wydatki wg kategorii</div>
-        </div>
-
-        <div class="charts">
-          <div class="chartCard">
-            <div class="chartTitle">Saldo / cashflow (wybrany miesiąc)</div>
-            <canvas id="chartLine"></canvas>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>2) Podsumowanie miesiąca</h2>
+            <div class="hint">Wybierz miesiąc → zobacz KPI + tip</div>
           </div>
-          <div class="chartCard">
-            <div class="chartTitle">Wydatki wg kategorii (wybrany miesiąc)</div>
-            <canvas id="chartPie"></canvas>
+
+          <div class="row">
+            <select id="monthPick" class="select"></select>
+            <button id="btnThisMonth" class="btn btn2">Bieżący</button>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="kpi-label">Przychody</div>
+              <div class="kpi-value" id="kIncome">0</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Koszty</div>
+              <div class="kpi-value" id="kExpense">0</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Netto</div>
+              <div class="kpi-value" id="kNet">0</div>
+            </div>
+          </div>
+
+          <div class="mini">
+            <div class="mini-title">Szybka wskazówka</div>
+            <div class="mini-text" id="tip">Dodaj transakcje — a dostaniesz konkretne wnioski.</div>
           </div>
         </div>
-      </div>
 
-      <!-- TRANSACTIONS -->
-      <div class="panel panel-wide">
-        <div class="panel-head">
-          <h2>4) Transakcje</h2>
-          <div class="hint">Kliknij kosz, żeby usunąć</div>
+        <div class="panel panel-wide">
+          <div class="panel-head">
+            <h2>3) Wykresy</h2>
+            <div class="hint">Cashflow + wydatki wg kategorii (kolory automatyczne)</div>
+          </div>
+
+          <div class="charts">
+            <div class="chartCard">
+              <div class="chartTitle">Cashflow narastająco (wybrany miesiąc)</div>
+              <canvas id="chartLine"></canvas>
+            </div>
+            <div class="chartCard">
+              <div class="chartTitle">Wydatki wg kategorii (wybrany miesiąc)</div>
+              <canvas id="chartPie"></canvas>
+            </div>
+          </div>
         </div>
 
-        <div class="tableWrap">
-          <table class="table" id="txTable">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Opis</th>
-                <th>Kategoria</th>
-                <th class="right">Kwota</th>
-                <th class="right">Akcja</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
+        <div class="panel panel-wide">
+          <div class="panel-head">
+            <h2>4) Transakcje</h2>
+            <div class="hint">Usuń → kosz. Wszystko zapisuje się lokalnie.</div>
+          </div>
 
-      <!-- AI CHAT -->
-      <div class="panel panel-wide">
-        <div class="panel-head">
-          <h2>5) AI CFO (normalnie jak z kolegą)</h2>
-          <div class="hint">Może też doradzić wakacje w budżecie (kraj/miasto), bez wulgaryzmów</div>
-        </div>
-
-        <div class="chat-toolbar">
-          <label class="label">Tryb</label>
-          <select id="mode" class="select">
-            <option value="cfo">💼 Finanse / rachunki / budżet</option>
-            <option value="vacation">✈️ Wakacje w budżecie (kraj/miasto + koszty)</option>
-          </select>
-
-          <div class="spacer"></div>
-          <button id="btnClearChat" class="ghost2">Wyczyść chat</button>
+          <div class="tableWrap">
+            <table class="table" id="txTable">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Opis</th>
+                  <th>Kategoria</th>
+                  <th class="right">Kwota</th>
+                  <th class="right">Akcja</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
 
-        <div id="chat" class="chat"></div>
-
-        <div class="composer">
-          <input id="question" class="input" placeholder="Np. Jak obciąć koszty? / Gdzie polecisz za 2500 zł na 7 dni dla 2 osób?" />
-          <button id="btnAsk" class="btn">Wyślij</button>
-        </div>
-
-        <div class="footnote">
-          FinPilot to narzędzie pomocnicze — decyzje podejmuj świadomie. Dane są zapisywane lokalnie w przeglądarce.
-        </div>
-      </div>
-
+      </section>
     </section>
+
+    <!-- =============== TAB: PLANS =============== -->
+    <section class="tabPage" id="tab-plans">
+      <section class="grid">
+
+        <div class="panel panel-wide">
+          <div class="panel-head">
+            <h2>Plan wydatków (rezerwy + zachcianki + wyjazdy)</h2>
+            <div class="hint">Zaplanuj stałe koszty i cele → wiesz ile “zostaje”</div>
+          </div>
+
+          <div class="three">
+            <div class="field">
+              <label>Miesięczny przychód (plan)</label>
+              <input id="planIncome" class="input" type="number" step="0.01" placeholder="np. 9000" />
+            </div>
+            <div class="field">
+              <label>Miesięczne koszty stałe (plan)</label>
+              <input id="planFixed" class="input" type="number" step="0.01" placeholder="np. 3500" />
+            </div>
+            <div class="field">
+              <label>Budżet zachcianek (plan)</label>
+              <input id="planFun" class="input" type="number" step="0.01" placeholder="np. 800" />
+            </div>
+          </div>
+
+          <div class="three">
+            <div class="field">
+              <label>Oszczędzanie / inwestycje (plan)</label>
+              <input id="planSave" class="input" type="number" step="0.01" placeholder="np. 1200" />
+            </div>
+            <div class="field">
+              <label>Wakacje / wyjazdy (plan)</label>
+              <input id="planTrips" class="input" type="number" step="0.01" placeholder="np. 600" />
+            </div>
+            <div class="field">
+              <label>Inne / bufor (plan)</label>
+              <input id="planOther" class="input" type="number" step="0.01" placeholder="np. 400" />
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="btnSavePlan" class="btn">Zapisz plan</button>
+            <button id="btnUsePlanThisMonth" class="btn btn2">Ustaw plan jako cele na ten miesiąc</button>
+            <div class="status" id="planStatus"></div>
+          </div>
+
+          <div class="planBox">
+            <div>
+              <div class="planTitle">Wynik planu</div>
+              <div class="planBig" id="planLeft">0 zł</div>
+              <div class="micro">To “zostaje” po stałych + zachciankach + oszczędzaniu + wyjazdach.</div>
+            </div>
+
+            <div class="planBars">
+              <div class="barRow"><span>Stałe</span><div class="bar"><i id="barFixed"></i></div></div>
+              <div class="barRow"><span>Zachcianki</span><div class="bar"><i id="barFun"></i></div></div>
+              <div class="barRow"><span>Oszczędzanie</span><div class="bar"><i id="barSave"></i></div></div>
+              <div class="barRow"><span>Wyjazdy</span><div class="bar"><i id="barTrips"></i></div></div>
+              <div class="barRow"><span>Bufor</span><div class="bar"><i id="barOther"></i></div></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </section>
+
+    <!-- =============== TAB: AI =============== -->
+    <section class="tabPage" id="tab-ai">
+      <section class="grid">
+        <div class="panel panel-wide">
+          <div class="panel-head">
+            <h2>AI (doradca finansów + wakacje w budżecie + linki)</h2>
+            <div class="hint">AI odpowiada normalnie, ale bez wulgaryzmów i w kontekście budżetu.</div>
+          </div>
+
+          <div class="chat-toolbar">
+            <label class="label">Tryb</label>
+            <select id="mode" class="select">
+              <option value="cfo">💼 Finanse / oszczędzanie / rachunki</option>
+              <option value="vacation">✈️ Wakacje (kraj/miasto + linki do hoteli/lotów)</option>
+              <option value="saver">🧠 Oszczędzanie (życiowe triki wg Twoich wydatków)</option>
+            </select>
+
+            <div class="spacer"></div>
+            <button id="btnClearChat" class="ghost2">Wyczyść chat</button>
+          </div>
+
+          <div id="chat" class="chat"></div>
+
+          <div class="composer">
+            <input id="question" class="input" placeholder="Np. Gdzie polecisz za 2500 zł na 7 dni dla 2 osób? / Jak uciąć koszty transportu?" />
+            <button id="btnAsk" class="btn">Wyślij</button>
+          </div>
+
+          <div class="footnote">
+            Linki są generowane jako wyszukania (Booking/Google Hotels/Skyscanner) na podstawie Twoich kryteriów — ceny na żywo zależą od terminu.
+          </div>
+        </div>
+      </section>
+    </section>
+
   </main>
 
   <script src="app.js"></script>
