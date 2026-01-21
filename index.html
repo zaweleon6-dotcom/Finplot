@@ -4,9 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FinPilot</title>
-
   <meta name="theme-color" content="#4f46e5" />
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=20" />
 </head>
 
 <body>
@@ -23,17 +22,15 @@
 
     <main class="container">
 
-      <!-- IMPORT -->
       <section class="card">
-        <h2>Import finansów</h2>
+        <h2>1. Import finansów</h2>
         <textarea id="csv" rows="6" placeholder="date,description,amount"></textarea>
         <button id="btnImport">Importuj CSV</button>
         <div id="status"></div>
       </section>
 
-      <!-- DASHBOARD -->
       <section class="card">
-        <h2>Podsumowanie</h2>
+        <h2>2. Podsumowanie</h2>
         <div class="kpis">
           <div><span>Przychody</span><b id="income">0</b></div>
           <div><span>Koszty</span><b id="expense">0</b></div>
@@ -41,9 +38,8 @@
         </div>
       </section>
 
-      <!-- AI CFO -->
       <section class="card full">
-        <h2>AI CFO – decyzje finansowe</h2>
+        <h2>3. AI CFO – decyzja</h2>
 
         <div class="mode-switch">
           <label>Tryb:</label>
@@ -53,7 +49,10 @@
           </select>
         </div>
 
-        <div id="chat"></div>
+        <div id="decision" class="decision hidden">
+          <div class="decision-status">—</div>
+          <div class="decision-text"></div>
+        </div>
 
         <input
           id="question"
