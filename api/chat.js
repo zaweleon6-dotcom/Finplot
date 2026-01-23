@@ -1,75 +1,164 @@
+import OpenAI from "openai";
+
+/*
+  ==========================================================
+  FinPilot AI – backend chat
+  Styl: kolega od kasy, bez coachingu, bez moralizowania
+  Zakres: finanse osobiste, wydatki, oszczędzanie, wakacje
+  ==========================================================
+*/
+
+// ================== OPENAI INIT ==================
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// ================== HELPERS ==================
+function sanitize(text = "") {
+  return text
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function shortReply(text) {
+  if (!text) return "";
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  return sentences.slice(0, 4).join(" ");
+}
+
+// ================== SYSTEM PROMPT ==================
+const SYSTEM_PROMPT = `
+Jesteś FinPilotem – kolegą od pieniędzy.
+
+Mówisz LUŹNO, normalnie, jak do znajomego.
+Nie jesteś coachem, nie robisz analiz, nie piszesz planów punktowanych.
+
+ZASADY:
+- Jeśli użytkownik pisze "hej", "siema", "elo" → odpowiadasz krótko i normalnie.
+- Nie wyciągasz wniosków bez danych.
+- Nie piszesz list typu "1) 2) 3)".
+- Nie używasz słów: "musisz", "najważniejszy wniosek", "ryzyko".
+- Jeśli pytanie jest luźne → odpowiedź luźna.
+- Jeśli pytanie o finanse → praktyczna, życiowa rada.
+- Wakacje, kraje, miasta, hotele – OK, ale zawsze w kontekście budżetu.
+- Zero moralizowania.
+
+STYL:
+- 1–4 zdania
+- jak Messenger / WhatsApp
+- naturalny język
+- bez emoji nadużywania (max 1)
+
+PRZYKŁADY:
+
+User: hej  
+Ty: Hej 😄 Co dziś ogarniamy – kasa, wydatki czy jakiś wyjazd?
+
+User: jak tanio polecieć do Hiszpanii  
+Ty: Da się tanio, serio. Poza sezonem loty potrafią być po 200–300 zł, a nocleg ogarniemy taniej poza centrum.
+
+User: wydałem 600 zł na zakupy  
+Ty: Sporo jak na jeden strzał. Jeśli to często się powtarza, może warto rozbić zakupy albo zmienić sklep.
+`;
+
+// ================== MAIN HANDLER ==================
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Only POST allowed" });
   }
 
-  const { message } = req.body || {};
-  if (!message) {
-    return res.status(400).json({ error: "Missing message" });
-  }
-
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+    const { message, history = [], mode = "finance" } = req.body;
+
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "No message provided" });
+    }
+
+    // ================== MODE PROMPTS ==================
+    let modePrompt = "";
+    if (mode === "vacation") {
+      modePrompt = `
+Tryb WAKACJE:
+- Doradzasz tanie wyjazdy
+- Podajesz kraje, miasta, typy noclegów
+- Możesz wspominać o lotach, hotelach, Airbnb
+- NIE wklejasz linków losowo, tylko jeśli ma to sens
+`;
+    } else {
+      modePrompt = `
+Tryb FINANSE:
+- Wydatki, oszczędzanie, rachunki
+- Codzienne decyzje finansowe
+- Proste, życiowe porady
+`;
+    }
+
+    // ================== BUILD MESSAGES ==================
+    const messages = [
+      {
+        role: "system",
+        content: SYSTEM_PROMPT + "\n" + modePrompt,
       },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.7,
-        messages: [
-          {
-            role: "system",
-            content: `
-{
-  role: "system",
-  content: `
-Jesteś FinPilotem – AI kumplem od pieniędzy.
+    ];
 
-PISZESZ:
-- luźno
-- po ludzku
-- jak dobry kolega, nie jak urzędnik ani coach
-- bez numerowanych list i bez moralizowania
-- bez oceniania użytkownika
+    // ograniczona historia (max 6 ostatnich wiadomości)
+    if (Array.isArray(history)) {
+      history.slice(-6).forEach((h) => {
+        if (h.role && h.content) {
+          messages.push({
+            role: h.role,
+            content: h.content,
+          });
+        }
+      });
+    }
 
-ZASADY:
-- Rozmawiasz TYLKO o finansach, oszczędzaniu, wydatkach, wakacjach w budżecie, miastach, krajach, cenach.
-- Możesz rozmawiać o krajach, miastach, hotelach i podróżach, JEŚLI łączysz to z kosztami.
-- Jeśli pytanie jest „luźne” (np. hej, co tam) → odpowiadasz normalnie, krótko i po koleżeńsku.
-- Nie odmawiasz odpowiedzi mówiąc „to nie są finanse” – zawsze sprytnie łączysz temat z pieniędzmi.
-
-STYL:
-- krótkie akapity
-- zero numerowania
-- zero „najważniejszy wniosek”
-- zero „musisz”
-- mówisz: „możesz”, „ja bym zrobił”, „jeśli chcesz”
-
-PRZYKŁAD:
-Użytkownik: „hej”
-Ty: „Hej 😄 Co dziś ogarniamy – wydatki, oszczędzanie czy plan na jakiś wyjazd?”
-
-Użytkownik: „jak tanio polecieć do Włoch?”
-Ty: „Da się to ogarnąć budżetowo. Najtaniej zwykle wychodzi poza sezonem, np. marzec albo listopad. Loty z Polski potrafią kosztować 150–300 zł w dwie strony, a noclegi ogarniemy już od ~120 zł za noc.”
-`
-}
-
-          {
-            role: "user",
-            content: message
-          }
-        ]
-      })
+    messages.push({
+      role: "user",
+      content: message,
     });
 
-    const data = await response.json();
+    // ================== OPENAI CALL ==================
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.7,
+      messages,
+    });
+
+    let reply = completion.choices[0].message.content || "";
+    reply = sanitize(reply);
+    reply = shortReply(reply);
+
+    // ================== SAFE GUARDS ==================
+    if (
+      reply.toLowerCase().includes("najważniejszy") ||
+      reply.toLowerCase().includes("musisz") ||
+      reply.toLowerCase().includes("ryzyko")
+    ) {
+      reply =
+        "Okej, to uprośćmy 😄 Powiedz mi konkretnie, co chcesz ogarnąć – wydatki, oszczędzanie czy jakiś wyjazd.";
+    }
+
+    // ================== RESPONSE ==================
     res.status(200).json({
-      reply: data.choices[0].message.content
+      reply,
     });
-
-  } catch (err) {
-    res.status(500).json({ error: "AI error", details: String(err) });
+  } catch (error) {
+    res.status(500).json({
+      error: "AI error",
+      details: error.message,
+    });
   }
 }
+
+/*
+  ==========================================================
+  TODO (na później, NIE TERAZ):
+  - pamięć użytkownika (localStorage / DB)
+  - sugestie oszczędności na podstawie historii
+  - tryb „planowanie miesiąca”
+  - tryb „wakacje + budżet”
+  ==========================================================
+*/
+
