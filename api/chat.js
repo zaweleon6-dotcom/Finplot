@@ -1,44 +1,77 @@
-export default async function handler(req, res) {
+export const config = {
+  runtime: "edge"
+};
+
+export default async function handler(req) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Only POST allowed" });
+    return new Response(
+      JSON.stringify({ error: "Only POST allowed" }),
+      { status: 405 }
+    );
   }
 
-  const { message, history = [], mode = "finance" } = req.body || {};
-
-  if (!message) {
-    return res.status(400).json({ error: "No message provided" });
+  const body = await req.json().catch(() => null);
+  if (!body || !body.message) {
+    return new Response(
+      JSON.stringify({ error: "No message provided" }),
+      { status: 400 }
+    );
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({
-      error: "Missing OPENAI_API_KEY in Vercel env"
-    });
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  if (!OPENAI_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: "Missing OPENAI_API_KEY" }),
+      { status: 500 }
+    );
   }
 
   const systemPrompt = `
-Jesteś FinPilotem – kolegą od pieniędzy.
+Jesteś FinPilotem – kumplem od pieniędzy.
 
-Mówisz LUŹNO, normalnie, jak do znajomego.
-Nie jesteś coachem. Nie robisz planów, list ani analiz.
+Mówisz luźno, normalnie, jak do kolegi.
+Nie robisz planów, list, analiz ani coachingu.
+Jeśli ktoś pisze "hej" – odpowiadasz krótko i normalnie.
+Wakacje, miasta, kraje – OK, ale zawsze w kontekście budżetu.
 
-ZASADY:
-- Jeśli ktoś pisze „hej” → odpowiadasz krótko i normalnie.
-- Nie używasz słów: „musisz”, „najważniejszy wniosek”, „ryzyko”.
-- Wakacje, miasta, kraje – OK, ale zawsze w kontekście budżetu.
-- Styl jak Messenger, 1–3 zdania.
-
-Przykład:
-User: hej
-Ty: Hej 😄 Co dziś ogarniamy – kasa, wydatki czy jakiś wyjazd?
+Styl:
+- 1–3 zdania
+- język Messenger
+- bez moralizowania
 `;
 
   const messages = [
     { role: "system", content: systemPrompt },
-    ...history.slice(-6),
-    { role: "user", content: message }
+    { role: "user", content: body.message }
   ];
 
-  try {
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.7,
+      messages
+    })
+  });
+
+  const data = await r.json();
+
+  if (!r.ok) {
+    return new Response(
+      JSON.stringify({ error: "OpenAI error", details: data }),
+      { status: 500 }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({
+      reply: data.choices[0].message.content
+    }),
+    { status: 200 }
+  );
+}
+
